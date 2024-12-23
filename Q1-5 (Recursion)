@@ -1,1 +1,97 @@
+/*
+Q1. Fibonacci Series Using Recursion        
+Q2. Reverse Linked List
+Q3. Add Two Numbers in two given non-empty linked lists representing two non-negative integers where digits are stored in reverse order
+Q4. Wildcard Matching
+Q5. Special Binary String
+*/
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+
+using namespace std;
+
+int fib(int n){
+    return (n<2) ? n : fib(n-1) + fib(n-2);
+}
+
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode(int x) : val(x), next(nullptr) {}
+};
+
+ListNode* reverseList(ListNode* head){
+    if(!head || !head->next) return head;
+    ListNode* newHead = reverseList(head->next);
+    head->next->next = head;
+    head->next = nullptr;
+    return newHead;
+}
+
+ListNode* addTwoNumbersRecursive(ListNode* l1, ListNode* l2, int carry){
+    if(!l1 && !l2 && carry==0) return nullptr;
+    int sum = (l1? l1->val : 0) + (l2? l2->val : 0) + carry;
+    ListNode* node = new ListNode(sum % 10);
+    node->next = addTwoNumbersRecursive(l1? l1->next : nullptr,
+                                        l2? l2->next : nullptr,
+                                        sum / 10);
+    return node;
+}
+
+ListNode* addTwoNumbers(ListNode* l1, ListNode* l2){
+    return addTwoNumbersRecursive(l1, l2, 0);
+}
+
+bool helper(const string &s, const string &p, int i, int j, vector<vector<int>> &memo){
+    if(memo[i][j] != -1) return memo[i][j];
+    if(j == (int)p.size()) return memo[i][j] = (i == (int)s.size());
+    if(i == (int)s.size()){
+        while(j < (int)p.size() && p[j] == '*') j++;
+        return memo[i][j] = (j == (int)p.size());
+    }
+    if(p[j] == s[i] || p[j] == '?'){
+        memo[i][j] = helper(s, p, i+1, j+1, memo);
+        return memo[i][j];
+    }
+    if(p[j] == '*'){
+        memo[i][j] = helper(s, p, i, j+1, memo) || helper(s, p, i+1, j, memo);
+        return memo[i][j];
+    }
+    return memo[i][j] = false;
+}
+
+bool isMatch(string s, string p){
+    vector<vector<int>> memo(s.size()+1, vector<int>(p.size()+1, -1));
+    return helper(s, p, 0, 0, memo);
+}
+
+string makeLargestSpecial(string s){
+    if(s.size() < 2) return s;
+    int count = 0, start = 0;
+    vector<string> subs;
+    for(int i=0; i<(int)s.size(); i++){
+        (s[i] == '1') ? count++ : count--;
+        if(count == 0){
+            subs.push_back("1" + makeLargestSpecial(s.substr(start+1, i - start - 1)) + "0");
+            start = i + 1;
+        }
+    }
+    sort(subs.begin(), subs.end(), greater<string>());
+    string result;
+    for(auto &sub : subs) result += sub;
+    return result;
+}
+
+int main(){
+    cout << fib(2) << endl;
+    cout << fib(3) << endl;
+    cout << boolalpha << isMatch("aa","a") << endl;
+    cout << isMatch("aa","*") << endl;
+    cout << isMatch("cb","?a") << endl;
+    cout << makeLargestSpecial("11011000") << endl;
+    cout << makeLargestSpecial("10") << endl;
+    return 0;
+}
 
